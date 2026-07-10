@@ -139,3 +139,8 @@ func (s *OrderService) CancelOrder(orderID string) (*Order, error) {
 func (s *OrderService) FindOrderByID(orderID string) (*Order, error) {
 	return s.orderRepo.FindByID(orderID)
 }
+
+// ListOrders retorna uma lista de pedidos, opcionalmente filtrada.
+func (s *OrderService) ListOrders(filters ...OrderFilter) ([]*Order, error) {
+	return s.orderRepo.List(filters...)
+}

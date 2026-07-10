@@ -96,6 +96,51 @@ func main() {
 	fmt.Println("\n--- Final Stock (should not have changed in error scenarios) ---")
 	printCurrentStock(productRepo)
 	fmt.Println("----------------------------------------------------------------")
+
+
+	fmt.Println("\n--- 6. Scenario: Creating More Orders for Filtering ---")
+
+	orderService.CreateOrder(CreateOrderRequest{
+		Customer: "Beatriz",
+		Items: []CreateOrderItemRequest{
+			{ProductID: "P001", Quantity: 2},
+		},
+	})
+
+	orderToCancel, _ := orderService.CreateOrder(CreateOrderRequest{
+		Customer: "Daniel",
+		Items:    []CreateOrderItemRequest{{ProductID: "P003", Quantity: 1}},
+	})
+	orderService.CancelOrder(orderToCancel.ID)
+
+	fmt.Println("Additional orders created for filtering tests.")
+
+	fmt.Println("\n--- Filtering Paid Orders ---")
+	paidOrders, _ := orderService.ListOrders(func(order *Order) bool {
+		return order.Status == StatusPaid
+	})
+	fmt.Printf("Found %d paid order(s):\n", len(paidOrders))
+	for _, order := range paidOrders {
+		fmt.Printf("- ID: %s, Customer: %s, Status: %s\n", order.ID, order.Customer, order.Status)
+	}
+
+	fmt.Println("\n--- Filtering Pending Orders ---")
+	pendingOrders, _ := orderService.ListOrders(func(order *Order) bool {
+		return order.Status == StatusPending
+	})
+	fmt.Printf("Found %d pending order(s):\n", len(pendingOrders))
+	for _, order := range pendingOrders {
+		fmt.Printf("- ID: %s, Customer: %s, Status: %s\n", order.ID, order.Customer, order.Status)
+	}
+
+	fmt.Println("\n--- Filtering Orders with Total Above R$5000 ---")
+	highValueOrders, _ := orderService.ListOrders(func(order *Order) bool {
+		return order.Total() > 5000.00
+	})
+	fmt.Printf("Found %d high-value order(s):\n", len(highValueOrders))
+	for _, order := range highValueOrders {
+		fmt.Printf("- ID: %s, Customer: %s, Total: R$%.2f\n", order.ID, order.Customer, order.Total())
+	}
 }
 
 func setupInitialProducts(repo ProductRepository) {
