@@ -93,6 +93,26 @@ func main() {
 		log.Fatal("Unexpected error: An order with invalid customer was created.")
 	}
 
+	fmt.Println("\n--- 6. Scenario: Attempting to Create an Order with Multiple Errors ---")
+	multiErrorRequest := CreateOrderRequest{
+		Customer: "Jorge",
+		Items: []CreateOrderItemRequest{
+			{ProductID: "P999", Quantity: 1},
+			{ProductID: "P001", Quantity: 99},
+			{ProductID: "P002", Quantity: -1},
+		},
+	}
+	_, err = orderService.CreateOrder(multiErrorRequest)
+	if err != nil {
+		fmt.Printf("Error (expected) with multiple validation issues:\n%v\n", err)
+		if !errors.Is(err, ErrProductNotFound) || !errors.Is(err, ErrInsufficientStock) || !errors.Is(err, ErrInvalidQuantity) {
+			log.Printf("WARNING: The joined error does not contain all expected error types.")
+		}
+	} else {
+		log.Fatal("Unexpected error: An order with multiple validation errors was created.")
+	}
+
+
 	fmt.Println("\n--- Final Stock (should not have changed in error scenarios) ---")
 	printCurrentStock(productRepo)
 	fmt.Println("----------------------------------------------------------------")

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -41,41 +42,49 @@ func (s *OrderService) generateID() string {
 
 
 func (s *OrderService) CreateOrder(req CreateOrderRequest) (*Order, error) {
-	
+	var validationErrors []error
+
 	if req.Customer == "" {
-		return nil, ErrInvalidCustomer
+		validationErrors = append(validationErrors, ErrInvalidCustomer)
 	}
 	if len(req.Items) == 0 {
-		return nil, ErrEmptyOrder
+		validationErrors = append(validationErrors, ErrEmptyOrder)
+	}
+
+
+	if len(validationErrors) > 0 {
+		return nil, errors.Join(validationErrors...)
 	}
 
 	var orderItems []*OrderItem
-	var productsToUpdate []*Product
 
-	
 	for _, itemReq := range req.Items {
 		if itemReq.Quantity <= 0 {
-			return nil, ErrInvalidQuantity
+			validationErrors = append(validationErrors, fmt.Errorf("item %s: %w", itemReq.ProductID, ErrInvalidQuantity))
+			continue
 		}
 
 		product, err := s.productRepo.FindByID(itemReq.ProductID)
 		if err != nil {
-			return nil, fmt.Errorf("Error trying to find product with ID %s: %w", itemReq.ProductID, err)
+			validationErrors = append(validationErrors, fmt.Errorf("item %s: %w", itemReq.ProductID, ErrProductNotFound))
+			continue
 		}
 
 		if product.Stock < itemReq.Quantity {
-			return nil, fmt.Errorf("%w: product with ID %s", ErrInsufficientStock, product.ID)
+			validationErrors = append(validationErrors, fmt.Errorf("item %s: %w", product.ID, ErrInsufficientStock))
 		}
 
 		orderItems = append(orderItems, &OrderItem{
 			Product:  product,
 			Quantity: itemReq.Quantity,
-			Price:    product.Price, 
+			Price:    product.Price,
 		})
-		productsToUpdate = append(productsToUpdate, product)
 	}
 
-	
+	if len(validationErrors) > 0 {
+		return nil, errors.Join(validationErrors...)
+	}
+
 	order := &Order{
 		ID:       s.generateID(),
 		Customer: req.Customer,
@@ -83,16 +92,12 @@ func (s *OrderService) CreateOrder(req CreateOrderRequest) (*Order, error) {
 		Status:   StatusPending,
 	}
 
-	
 	for _, item := range order.Items {
-		
 		item.Product.ReduceStock(item.Quantity)
 		s.productRepo.Save(item.Product)
 	}
 
-	
 	if err := s.orderRepo.Save(order); err != nil {
-		
 		return nil, fmt.Errorf("Error saving order: %w", err)
 	}
 
@@ -140,7 +145,6 @@ func (s *OrderService) FindOrderByID(orderID string) (*Order, error) {
 	return s.orderRepo.FindByID(orderID)
 }
 
-// ListOrders retorna uma lista de pedidos, opcionalmente filtrada.
 func (s *OrderService) ListOrders(filters ...OrderFilter) ([]*Order, error) {
 	return s.orderRepo.List(filters...)
 }
