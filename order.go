@@ -25,13 +25,24 @@ type Order struct {
 	Status   OrderStatus
 }
 
+func (o *Order) Subtotal() float64 {
+	var subtotal float64
+	for _, item := range o.Items {
+		subtotal += item.Price * float64(item.Quantity)
+	}
+	return subtotal
+}
+
+func (o *Order) Discount() float64 {
+	subtotal := o.Subtotal()
+	if subtotal > 5000.00 {
+		return subtotal * 0.10
+	}
+	return 0
+}
 
 func (o *Order) Total() float64 {
-	var total float64
-	for _, item := range o.Items {
-		total += item.Price * float64(item.Quantity)
-	}
-	return total
+	return o.Subtotal() - o.Discount()
 }
 
 

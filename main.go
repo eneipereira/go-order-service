@@ -100,7 +100,7 @@ func main() {
 
 	fmt.Println("\n--- 6. Scenario: Creating More Orders for Filtering ---")
 
-	orderService.CreateOrder(CreateOrderRequest{
+	highValueOrder, _ := orderService.CreateOrder(CreateOrderRequest{
 		Customer: "Beatriz",
 		Items: []CreateOrderItemRequest{
 			{ProductID: "P001", Quantity: 2},
@@ -114,6 +114,10 @@ func main() {
 	orderService.CancelOrder(orderToCancel.ID)
 
 	fmt.Println("Additional orders created for filtering tests.")
+	fmt.Printf("High-value order for Beatriz created. Subtotal: R$%.2f, Discount: R$%.2f, Final Total: R$%.2f\n",
+		highValueOrder.Subtotal(),
+		highValueOrder.Discount(),
+		highValueOrder.Total())
 
 	fmt.Println("\n--- Filtering Paid Orders ---")
 	paidOrders, _ := orderService.ListOrders(func(order *Order) bool {

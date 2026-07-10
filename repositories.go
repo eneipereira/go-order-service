@@ -40,7 +40,6 @@ func (r *inMemoryProductRepository) List() ([]*Product, error) {
 	return productList, nil
 }
 
-// OrderFilter é uma função usada para filtrar pedidos.
 type OrderFilter func(order *Order) bool
 
 type OrderRepository interface {
@@ -78,10 +77,10 @@ func (r *inMemoryOrderRepository) List(filters ...OrderFilter) ([]*Order, error)
 	var orderList []*Order
 outer:
 	for _, order := range r.orders {
-		// Aplica todos os filtros para o pedido atual
+	
 		for _, filter := range filters {
 			if !filter(order) {
-				continue outer // Se não passar em um filtro, vai para o próximo pedido
+				continue outer
 			}
 		}
 		orderList = append(orderList, order)
