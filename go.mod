@@ -1,3 +1,5 @@
 module github.com/eneipereira/go-order-service
 
-go 1.22.0
+go 1.23
+
+require github.com/go-chi/chi/v5 v5.3.1 // indirect

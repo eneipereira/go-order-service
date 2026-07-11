@@ -8,11 +8,9 @@ type ProductRepository interface {
 	List() ([]*model.Product, error)
 }
 
-
 type inMemoryProductRepository struct {
 	products map[string]*model.Product
 }
-
 
 func NewInMemoryProductRepository() ProductRepository {
 	return &inMemoryProductRepository{
@@ -49,11 +47,9 @@ type OrderRepository interface {
 	List(filters ...OrderFilter) ([]*model.Order, error)
 }
 
-
 type inMemoryOrderRepository struct {
 	orders map[string]*model.Order
 }
-
 
 func NewInMemoryOrderRepository() OrderRepository {
 	return &inMemoryOrderRepository{
@@ -78,7 +74,6 @@ func (r *inMemoryOrderRepository) List(filters ...OrderFilter) ([]*model.Order, 
 	var orderList []*model.Order
 outer:
 	for _, order := range r.orders {
-	
 		for _, filter := range filters {
 			if !filter(order) {
 				continue outer
