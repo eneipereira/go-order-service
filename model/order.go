@@ -1,6 +1,11 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type OrderStatus string
 
@@ -10,22 +15,25 @@ const (
 	StatusCanceled OrderStatus = "CANCELED"
 )
 
-
 type OrderItem struct {
-	Product  *Product
-	Quantity int
-	Price    float64 
+	ID        uuid.UUID `json:"id"`
+	OrderID   uuid.UUID `json:"orderId"`
+	ProductID uuid.UUID `json:"productId"`
+	Quantity  int       `json:"quantity"`
+	Price     float64   `json:"price"`
 }
-
 
 type Order struct {
-	ID       string
-	Customer string
-	Items    []*OrderItem
-	Status   OrderStatus
+	ID         uuid.UUID   `json:"id"`
+	CustomerID uuid.UUID   `json:"customerId"`
+	Status     OrderStatus `json:"status"`
+	Items      []OrderItem `json:"items"`
+	Total      float64     `json:"total"`
+	CreatedAt  time.Time   `json:"createdAt"`
+	UpdatedAt  time.Time   `json:"updatedAt"`
 }
 
-func (o *Order) Subtotal() float64 {
+func (o *Order) CalculateSubtotal() float64 {
 	var subtotal float64
 	for _, item := range o.Items {
 		subtotal += item.Price * float64(item.Quantity)
@@ -33,18 +41,17 @@ func (o *Order) Subtotal() float64 {
 	return subtotal
 }
 
-func (o *Order) Discount() float64 {
-	subtotal := o.Subtotal()
+func (o *Order) CalculateDiscount() float64 {
+	subtotal := o.CalculateSubtotal()
 	if subtotal > 5000.00 {
 		return subtotal * 0.10
 	}
 	return 0
 }
 
-func (o *Order) Total() float64 {
-	return o.Subtotal() - o.Discount()
+func (o *Order) CalculateTotal() {
+	o.Total = o.CalculateSubtotal() - o.CalculateDiscount()
 }
-
 
 func (o *Order) Pay() error {
 	if o.Status != StatusPending {
@@ -53,7 +60,6 @@ func (o *Order) Pay() error {
 	o.Status = StatusPaid
 	return nil
 }
-
 
 func (o *Order) Cancel() error {
 	if o.Status != StatusPending {
