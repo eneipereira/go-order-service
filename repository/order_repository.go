@@ -32,6 +32,7 @@ func (r *pgOrderRepository) Create(ctx context.Context, order *model.Order) erro
 		return fmt.Errorf("Error inserting order: %w", HandleRepositoryError(err))
 	}
 
+
 	for i := range order.Items {
 		item := &order.Items[i]
 		item.OrderID = order.ID
@@ -52,19 +53,20 @@ func (r *pgOrderRepository) Create(ctx context.Context, order *model.Order) erro
 		}
 	}
 
+
 	return tx.Commit(ctx)
 }
 
-func (r *pgOrderRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.Order, error) {
+func (r *pgOrderRepository) FindByID(ctx context.Context, id string) (*model.Order, error) {
 
-	orderQuery := `SELECT id, customer_id, status, total, created_at, updated_at FROM orders WHERE id = $1`
+	orderQuery := `SELECT id, customer_id, status, total, created_at, updated_at FROM orders WHERE id = $1::uuid`
 	order := &model.Order{}
 	err := r.pool.QueryRow(ctx, orderQuery, id).Scan(&order.ID, &order.CustomerID, &order.Status, &order.Total, &order.CreatedAt, &order.UpdatedAt)
 	if err != nil {
 		return nil, HandleRepositoryError(err)
 	}
 
-	itemsQuery := `SELECT id, order_id, product_id, quantity, price FROM order_items WHERE order_id = $1`
+	itemsQuery := `SELECT id, order_id, product_id, quantity, price FROM order_items WHERE order_id = $1::uuid`
 	rows, err := r.pool.Query(ctx, itemsQuery, id)
 	if err != nil {
 		return nil, fmt.Errorf("Error fetching order items: %w", err)
@@ -102,7 +104,7 @@ func (r *pgOrderRepository) FindAll(ctx context.Context, limit, offset int) ([]*
 		orderIDs[i] = order.ID
 	}
 
-	itemsQuery := `SELECT id, order_id, product_id, quantity, price FROM order_items WHERE order_id = ANY($1)`
+	itemsQuery := `SELECT id, order_id, product_id, quantity, price FROM order_items WHERE order_id = ANY($1::uuid[])`
 	itemRows, err := r.pool.Query(ctx, itemsQuery, orderIDs)
 	if err != nil {
 		return nil, fmt.Errorf("Error fetching items for orders: %w", err)
@@ -125,8 +127,8 @@ func (r *pgOrderRepository) FindAll(ctx context.Context, limit, offset int) ([]*
 	return orders, nil
 }
 
-func (r *pgOrderRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status model.OrderStatus) error {
-	query := `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2`
+func (r *pgOrderRepository) UpdateStatus(ctx context.Context, id string, status model.OrderStatus) error {
+	query := `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2::uuid`
 	res, err := r.pool.Exec(ctx, query, status, id)
 	if err != nil {
 		return fmt.Errorf("Error updating order status: %w", err)
@@ -144,14 +146,14 @@ func (r *pgOrderRepository) CancelOrderAndRestockItems(ctx context.Context, orde
 	}
 	defer tx.Rollback(ctx)
 
-	orderUpdateQuery := `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2`
+	orderUpdateQuery := `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2::uuid`
 	_, err = tx.Exec(ctx, orderUpdateQuery, model.StatusCanceled, order.ID)
 	if err != nil {
 		return fmt.Errorf("Error canceling order: %w", err)
 	}
 
 	for _, item := range order.Items {
-		stockUpdateQuery := `UPDATE products SET stock = stock + $1 WHERE id = $2`
+		stockUpdateQuery := `UPDATE products SET stock = stock + $1 WHERE id = $2::uuid`
 		_, err := tx.Exec(ctx, stockUpdateQuery, item.Quantity, item.ProductID)
 		if err != nil {
 			return fmt.Errorf("Error restoking product %s: %w", item.ProductID, err)

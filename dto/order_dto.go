@@ -33,3 +33,25 @@ type OrderResponseDTO struct {
 	CreatedAt  time.Time              `json:"createdAt"`
 	UpdatedAt  time.Time              `json:"updatedAt"`
 }
+
+func NewOrderResponseDTO(order model.Order) OrderResponseDTO {
+	items := make([]OrderItemResponseDTO, len(order.Items))
+	for i, item := range order.Items {
+		items[i] = OrderItemResponseDTO{
+			ID:        item.ID,
+			ProductID: item.ProductID,
+			Quantity:  item.Quantity,
+			Price:     item.Price,
+		}
+	}
+
+	return OrderResponseDTO{
+		ID:         order.ID,
+		CustomerID: order.CustomerID,
+		Status:     order.Status,
+		Items:      items,
+		Total:      order.Total,
+		CreatedAt:  order.CreatedAt,
+		UpdatedAt:  order.UpdatedAt,
+	}
+}

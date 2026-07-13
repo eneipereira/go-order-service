@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func SetupRouter(customerController *controllers.CustomerController, productController *controllers.ProductController) *chi.Mux {
+func SetupRouter(customerController *controllers.CustomerController, productController *controllers.ProductController, orderController *controllers.OrderController) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -15,6 +15,7 @@ func SetupRouter(customerController *controllers.CustomerController, productCont
 
 	RegisterCustomerRoutes(r, customerController)
 	RegisterProductRoutes(r, productController)
+	RegisterOrderRoutes(r, orderController)
 
 	return r
 }

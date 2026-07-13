@@ -10,6 +10,7 @@ import (
 	"github.com/eneipereira/go-order-service/database"
 	"github.com/eneipereira/go-order-service/repository"
 	"github.com/eneipereira/go-order-service/routes"
+	"github.com/eneipereira/go-order-service/service"
 )
 
 func main() {
@@ -25,11 +26,15 @@ func main() {
 
 	customerRepo := repository.NewPostgresCustomerRepository(dbpool)
 	productRepo := repository.NewPostgresProductRepository(dbpool)
+	orderRepo := repository.NewPostgresOrderRepository(dbpool)
+
+	orderService := service.NewOrderService(orderRepo, productRepo, customerRepo)
 
 	customerController := controllers.NewCustomerController(customerRepo)
 	productController := controllers.NewProductController(productRepo)
+	orderController := controllers.NewOrderController(orderService)
 
-	router := routes.SetupRouter(customerController, productController)
+	router := routes.SetupRouter(customerController, productController, orderController)
 
 	log.Printf("Server is running on port %s", cfg.ServerPort)
 
