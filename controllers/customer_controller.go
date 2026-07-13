@@ -43,6 +43,12 @@ func (c *CustomerController) Create(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
+
+		if isValidationErrorCust(err) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		log.Printf("Error saving customer: %v", err)
 		http.Error(w, "Could not create customer", http.StatusInternalServerError)
 		return
@@ -98,6 +104,22 @@ func (c *CustomerController) FindByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSONResponse(w, http.StatusOK, dto.NewCustomerResponseDTO(*customer))
+}
+
+func isValidationErrorCust(err error) bool {
+	return errors.Is(err, model.ErrNotNullViolation) ||
+		errors.Is(err, model.ErrCustomerNameRequired) ||
+		errors.Is(err, model.ErrCustomerNameTooShort) ||
+		errors.Is(err, model.ErrCustomerNameTooLong) ||
+		errors.Is(err, model.ErrCustomerEmailRequired) ||
+		errors.Is(err, model.ErrCustomerEmailInvalid) ||
+		errors.Is(err, model.ErrCustomerEmailTooLong) ||
+		errors.Is(err, model.ErrCustomerPhoneRequired) ||
+		errors.Is(err, model.ErrCustomerPhoneInvalid) ||
+		errors.Is(err, model.ErrCustomerPhoneTooLong) ||
+		errors.Is(err, model.ErrCustomerPasswordRequired) ||
+		errors.Is(err, model.ErrCustomerPasswordTooShort) ||
+		errors.Is(err, model.ErrCustomerPasswordTooLong)
 }
 
 func getQueryParamAsInt(r *http.Request, paramName string, defaultValue int) (int, error) {

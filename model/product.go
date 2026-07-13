@@ -17,8 +17,8 @@ const (
 type Product struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
-	Price     float64   `json:"price"`
-	Stock     int       `json:"stock"`
+	Price     *float64  `json:"price"`
+	Stock     *int      `json:"stock"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -29,30 +29,30 @@ func NewProduct(name string, price float64, stock int) (*Product, error) {
 	if err := ValidateProductName(name); err != nil {
 		return nil, err
 	}
-	if err := ValidateProductPrice(price); err != nil {
+	if err := ValidateProductPrice(&price); err != nil {
 		return nil, err
 	}
-	if err := ValidateProductStock(stock); err != nil {
+	if err := ValidateProductStock(&stock); err != nil {
 		return nil, err
 	}
 
 	return &Product{
 		Name:  name,
-		Price: price,
-		Stock: stock,
+		Price: &price,
+		Stock: &stock,
 	}, nil
 }
 
 func (p *Product) ReduceStock(quantity int) error {
-	if p.Stock < quantity {
-		return fmt.Errorf("%w: requested %d, but only %d in stock for product %s", ErrInsufficientStock, quantity, p.Stock, p.ID)
+	if *p.Stock < quantity {
+		return fmt.Errorf("%w: requested %d, but only %d in stock for product %s", ErrInsufficientStock, quantity, *p.Stock, p.ID)
 	}
-	p.Stock -= quantity
+	*p.Stock -= quantity
 	return nil
 }
 
 func (p *Product) AddStock(quantity int) {
-	p.Stock += quantity
+	*p.Stock += quantity
 }
 
 func ValidateProductName(name string) error {
@@ -68,16 +68,16 @@ func ValidateProductName(name string) error {
 	}
 }
 
-func ValidateProductPrice(price float64) error {
-	if price < 0 {
-		return ErrInvalidProductPrice
+func ValidateProductPrice(price *float64) error {
+	if *price <= 0 {
+		return ErrProductPriceTooLow
 	}
 	return nil
 }
 
-func ValidateProductStock(stock int) error {
-	if stock < 0 {
-		return ErrInvalidProductStock
+func ValidateProductStock(stock *int) error {
+	if *stock <= 0 {
+		return ErrProductStockTooLow
 	}
 	return nil
 }

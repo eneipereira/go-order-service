@@ -8,16 +8,16 @@ import (
 )
 
 type CreateProductDTO struct {
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
-	Stock int     `json:"stock"`
+	Name  string   `json:"name"`
+	Price *float64 `json:"price,omitempty"`
+	Stock *int     `json:"stock,omitempty"`
 }
 
 type ProductResponseDTO struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
-	Price     float64   `json:"price"`
-	Stock     int       `json:"stock"`
+	Price     *float64  `json:"price"`
+	Stock     *int      `json:"stock"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

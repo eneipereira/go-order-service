@@ -22,7 +22,15 @@ func NewProductService(repo ProductRepository) *ProductService {
 }
 
 func (s *ProductService) Create(ctx context.Context, req dto.CreateProductDTO) (*model.Product, error) {
-	product, err := model.NewProduct(req.Name, req.Price, req.Stock)
+	if req.Price == nil {
+		return nil, model.ErrProductPriceRequired
+	}
+
+	if req.Stock == nil {
+		return nil, model.ErrProductStockRequired
+	}
+
+	product, err := model.NewProduct(req.Name, *req.Price, *req.Stock)
 	if err != nil {
 		return nil, err
 	}

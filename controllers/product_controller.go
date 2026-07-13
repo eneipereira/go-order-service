@@ -36,6 +36,10 @@ func (c *ProductController) Create(w http.ResponseWriter, r *http.Request) {
 
 	savedProduct, err := c.Service.Create(r.Context(), req)
 	if err != nil {
+		if isValidationErrorProd(err) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		log.Printf("Error saving product: %v", err)
 		http.Error(w, "Could not create product", http.StatusInternalServerError)
 		return
@@ -91,4 +95,15 @@ func (c *ProductController) FindByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSONResponse(w, http.StatusOK, dto.NewProductResponseDTO(*product))
+}
+
+func isValidationErrorProd(err error) bool {
+	return errors.Is(err, model.ErrNotNullViolation) ||
+		errors.Is(err, model.ErrProductNameRequired) ||
+		errors.Is(err, model.ErrProductNameTooShort) ||
+		errors.Is(err, model.ErrProductNameTooLong) ||
+		errors.Is(err, model.ErrProductPriceRequired) ||
+		errors.Is(err, model.ErrProductPriceTooLow) ||
+		errors.Is(err, model.ErrProductStockRequired) ||
+		errors.Is(err, model.ErrProductStockTooLow)
 }

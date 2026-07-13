@@ -63,7 +63,7 @@ func (s *OrderService) Create(ctx context.Context, req dto.CreateOrderDTO) (*mod
 		order.Items = append(order.Items, model.OrderItem{
 			ProductID: product.ID,
 			Quantity:  itemReq.Quantity,
-			Price:     product.Price,
+			Price:     *product.Price,
 		})
 	}
 
