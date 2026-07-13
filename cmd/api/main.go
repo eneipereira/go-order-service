@@ -24,11 +24,14 @@ func main() {
 	defer dbpool.Close()
 
 	customerRepo := repository.NewPostgresCustomerRepository(dbpool)
+	productRepo := repository.NewPostgresProductRepository(dbpool)
+
 	customerController := controllers.NewCustomerController(customerRepo)
+	productController := controllers.NewProductController(productRepo)
 
-	router := routes.SetupRouter(customerController)
+	router := routes.SetupRouter(customerController, productController)
 
-	log.Printf("Servidor iniciando na porta %s", cfg.ServerPort)
+	log.Printf("Server is running on port %s", cfg.ServerPort)
 
 	if err := http.ListenAndServe(cfg.ServerPort, router); err != nil {
 		log.Fatalf("Unable to start the server: %s\n", err)

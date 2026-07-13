@@ -19,7 +19,7 @@ type CustomerResponseDTO struct {
 	Name      		string 		`json:"name"`
 	Email     		string 		`json:"email"`
 	Phone     		string 		`json:"phone"`
-	PasswordHash 	string `json:"passwordHash"`
+	PasswordHash 	string 		`json:"passwordHash"`
 	CreatedAt 		time.Time `json:"createdAt"`
 	UpdatedAt 		time.Time `json:"updatedAt"`
 }
