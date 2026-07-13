@@ -44,7 +44,6 @@ func (repo *pgCustomerRepository) FindAll(ctx context.Context, limit, offset int
 
 	defer rows.Close()
 
-	//customers, err := pgx.CollectRows(rows, pgx.RowToAddrOf[model.Customer])
 	customers, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (*model.Customer, error) {
         var c model.Customer
         
