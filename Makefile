@@ -6,11 +6,11 @@ endif
 PORT ?= 8080
 POSTGRES_USER ?= admin
 POSTGRES_PASSWORD ?= admin
-POSTGRES_DB ?= order_service
+POSTGRES_DB ?= orders_service
 POSTGRES_PORT ?= 5432
 POSTGRES_HOST ?= localhost
 POSTGRES_SSLMODE ?= disable
-DATABASE_URL ?= "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+DATABASE_URL ?= "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSLMODE)"
 
 
 .PHONY: help up down db-up wait-db migrate-up db-down backend
@@ -39,7 +39,7 @@ db-up:
 
 wait-db:
 	@echo "Waiting for the database to be ready..."
-	@until docker exec -T order_service_db pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do \
+	@until docker exec -t order_service_db pg_isready -u $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do \
 		i=$$((i+1)); \
 		if [ $$i -gt 30 ]; then \
 			echo "\nError: The database did not become ready in time."; \
@@ -57,6 +57,15 @@ migrate-up:
 	}
 	@echo "Executing migrations..."
 	@migrate -database "$(DATABASE_URL)" -path migrations up
+
+migrate-down:
+	@command -v migrate >/dev/null 2>&1 || { \
+		@echo >&2 "The command 'migrate' is not installed. \
+		Please install it by running 'go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest'."; \
+		exit 1; \
+	}
+	@echo "Reverting migrations..."
+	@migrate -database "$(DATABASE_URL)" -path migrations down
 
 db-down:
 	@echo "Stopping the PostgreSQL container..."
