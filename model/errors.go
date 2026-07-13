@@ -27,4 +27,10 @@ var (
 	ErrCustomerPasswordRequired = errors.New("Customer password is required")
 	ErrCustomerPasswordTooShort = errors.New("Customer password is too short")
 	ErrCustomerPasswordTooLong  = errors.New("Customer password is too long")
+
+	ErrProductNameRequired = errors.New("Product name is required")
+	ErrProductNameTooShort = errors.New("Product name is too short")
+	ErrProductNameTooLong  = errors.New("Product name is too long")
+	ErrInvalidProductPrice = errors.New("Product price cannot be negative")
+	ErrInvalidProductStock = errors.New("Product stock cannot be negative")
 )
