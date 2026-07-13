@@ -7,8 +7,8 @@ import (
 
 func RegisterProductRoutes(router *chi.Mux, controller *controllers.ProductController) {
 	router.Route("/products", func(r chi.Router) {
-		r.Post("/", controller.CreateProduct)
-		r.Get("/", controller.FindAllProducts)
-		r.Get("/{id}", controller.FindProductByID)
+		r.Post("/", controller.Create)
+		r.Get("/", controller.FindAll)
+		r.Get("/{id}", controller.FindByID)
 	})
 }

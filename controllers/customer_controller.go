@@ -12,25 +12,23 @@ import (
 	"github.com/eneipereira/go-order-service/dto"
 	"github.com/eneipereira/go-order-service/model"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
-type CustomerRepository interface {
-	Save(ctx context.Context, customer *model.Customer) (*model.Customer, error)
+type CustomerService interface {
+	Create(ctx context.Context, req dto.CustomerDTO) (*model.Customer, error)
 	FindAll(ctx context.Context, limit, offset int) ([]*model.Customer, error)
 	FindByID(ctx context.Context, id string) (*model.Customer, error)
 }
 
 type CustomerController struct {
-	Repo CustomerRepository
+	Service CustomerService
 }
 
-func NewCustomerController(repo CustomerRepository) *CustomerController {
-	return &CustomerController{Repo: repo}
+func NewCustomerController(service CustomerService) *CustomerController {
+	return &CustomerController{Service: service}
 }
 
-func (c *CustomerController) CreateCustomer(w http.ResponseWriter, r *http.Request) {
+func (c *CustomerController) Create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var req dto.CustomerDTO
@@ -39,26 +37,7 @@ func (c *CustomerController) CreateCustomer(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := model.ValidateCustomerPassword(req.Password); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("Error generating password hash: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	customer, err := model.NewCustomerNoPassword(req.Name, req.Email, req.Phone)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	customer.PasswordHash = string(hashedPassword)
-
-	savedCustomer, err := c.Repo.Save(r.Context(), customer)
+	savedCustomer, err := c.Service.Create(r.Context(), req)
 	if err != nil {
 		if errors.Is(err, model.ErrEmailAlreadyExists) {
 			http.Error(w, err.Error(), http.StatusConflict)
@@ -72,7 +51,7 @@ func (c *CustomerController) CreateCustomer(w http.ResponseWriter, r *http.Reque
 	writeJSONResponse(w, http.StatusCreated, dto.NewCustomerResponseDTO(*savedCustomer))
 }
 
-func (c *CustomerController) FindAllCustomers(w http.ResponseWriter, r *http.Request) {
+func (c *CustomerController) FindAll(w http.ResponseWriter, r *http.Request) {
 	limit, err := getQueryParamAsInt(r, "limit", 10)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -85,7 +64,7 @@ func (c *CustomerController) FindAllCustomers(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	customers, err := c.Repo.FindAll(r.Context(), limit, offset)
+	customers, err := c.Service.FindAll(r.Context(), limit, offset)
 	if err != nil {
 		log.Printf("Error listing customers: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -100,14 +79,14 @@ func (c *CustomerController) FindAllCustomers(w http.ResponseWriter, r *http.Req
 	writeJSONResponse(w, http.StatusOK, customerResponses)
 }
 
-func (c *CustomerController) FindCustomerByID(w http.ResponseWriter, r *http.Request) {
+func (c *CustomerController) FindByID(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	customer, err := c.Repo.FindByID(r.Context(), id)
+	customer, err := c.Service.FindByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, model.ErrCustomerNotFound) {
 			http.Error(w, "Customer not found", http.StatusNotFound)
@@ -135,9 +114,6 @@ func getQueryParamAsInt(r *http.Request, paramName string, defaultValue int) (in
 
 func getIDFromRequest(r *http.Request) (string, error) {
 	id := chi.URLParam(r, "id")
-	if _, err := uuid.Parse(id); err != nil {
-		return "", model.ErrInvalidCustomerID
-	}
 	return id, nil
 }
 

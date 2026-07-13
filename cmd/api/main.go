@@ -28,10 +28,12 @@ func main() {
 	productRepo := repository.NewPostgresProductRepository(dbpool)
 	orderRepo := repository.NewPostgresOrderRepository(dbpool)
 
+	customerService := service.NewCustomerService(customerRepo)
+	productService := service.NewProductService(productRepo)
 	orderService := service.NewOrderService(orderRepo, productRepo, customerRepo)
 
-	customerController := controllers.NewCustomerController(customerRepo)
-	productController := controllers.NewProductController(productRepo)
+	customerController := controllers.NewCustomerController(customerService)
+	productController := controllers.NewProductController(productService)
 	orderController := controllers.NewOrderController(orderService)
 
 	router := routes.SetupRouter(customerController, productController, orderController)

@@ -17,14 +17,6 @@ type OrderRepository interface {
 	CancelOrderAndRestockItems(ctx context.Context, order *model.Order) error
 }
 
-type ProductRepository interface {
-	FindByID(ctx context.Context, id string) (*model.Product, error)
-}
-
-type CustomerRepository interface {
-	FindByID(ctx context.Context, id string) (*model.Customer, error)
-}
-
 type OrderService struct {
 	orderRepo    OrderRepository
 	productRepo  ProductRepository

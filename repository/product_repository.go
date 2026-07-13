@@ -18,7 +18,7 @@ func NewPostgresProductRepository(pool *pgxpool.Pool) *pgProductRepository {
 	return &pgProductRepository{pool: pool}
 }
 
-func (repo *pgProductRepository) Save(ctx context.Context, product *model.Product) (*model.Product, error) {
+func (repo *pgProductRepository) Create(ctx context.Context, product *model.Product) (*model.Product, error) {
 	query := `INSERT INTO products (name, price, stock) VALUES ($1, $2, $3) RETURNING id, name, price, stock,created_at, updated_at`
 	err := repo.pool.QueryRow(ctx, query, product.Name, product.Price, product.Stock).Scan(&product.ID, &product.Name, &product.Price, &product.Stock, &product.CreatedAt, &product.UpdatedAt)
 	if err != nil {

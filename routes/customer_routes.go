@@ -7,8 +7,8 @@ import (
 
 func RegisterCustomerRoutes(router *chi.Mux, controller *controllers.CustomerController) {
 	router.Route("/customers", func(r chi.Router) {
-		r.Post("/", controller.CreateCustomer)
-		r.Get("/", controller.FindAllCustomers)
-		r.Get("/{id}", controller.FindCustomerByID)
+		r.Post("/", controller.Create)
+		r.Get("/", controller.FindAll)
+		r.Get("/{id}", controller.FindByID)
 	})
 }

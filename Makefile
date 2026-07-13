@@ -39,7 +39,7 @@ db-up:
 
 wait-db:
 	@echo "Waiting for the database to be ready..."
-	@until docker exec -t order_service_db pg_isready -u $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do \
+	@until docker exec -t order_service_db pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do \
 		i=$$((i+1)); \
 		if [ $$i -gt 30 ]; then \
 			echo "\nError: The database did not become ready in time."; \
