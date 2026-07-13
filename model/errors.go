@@ -14,6 +14,8 @@ var (
 	ErrInvalidStatusChange      = errors.New("Invalid Status Change")
 	ErrEmailAlreadyExists       = errors.New("Email already exists")
 	ErrNotNullViolation         = errors.New("Not null violation: a required field is missing")
+	ErrInvalidUUID              = errors.New("ID must be a valid UUID")
+	ErrInvalidQueryParam        = errors.New("Invalid query parameter format")
 	ErrForeignKeyViolation      = errors.New("Foreign key violation: referenced entity not found")
 	ErrCustomerNameRequired     = errors.New("Customer name is required")
 	ErrCustomerNameTooShort     = errors.New("Customer name is too short")

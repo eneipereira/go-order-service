@@ -3,8 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/eneipereira/go-order-service/dto"
@@ -36,27 +35,21 @@ func NewProductController(service ProductService) *ProductController {
 // @Failure      400  {object}  object{error=string} "Bad Request"
 // @Failure      500  {object}  object{error=string} "Internal Server Error"
 // @Router       /products [post]
-func (c *ProductController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *ProductController) Create(w http.ResponseWriter, r *http.Request) error {
 	defer r.Body.Close()
 
 	var req dto.CreateProductDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
+		return fmt.Errorf("invalid JSON: %w", err)
 	}
 
 	savedProduct, err := c.Service.Create(r.Context(), req)
 	if err != nil {
-		if isValidationErrorProd(err) {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		log.Printf("Error saving product: %v", err)
-		http.Error(w, "Could not create product", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	writeJSONResponse(w, http.StatusCreated, dto.NewProductResponseDTO(*savedProduct))
+	return nil
 }
 
 // Find all products
@@ -69,24 +62,20 @@ func (c *ProductController) Create(w http.ResponseWriter, r *http.Request) {
 // @Success      200     {array}   dto.ProductResponseDTO
 // @Failure      500     {object}  object{error=string} "Internal Server Error"
 // @Router       /products [get]
-func (c *ProductController) FindAll(w http.ResponseWriter, r *http.Request) {
+func (c *ProductController) FindAll(w http.ResponseWriter, r *http.Request) error {
 	limit, err := getQueryParamAsInt(r, "limit", 10)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return err
 	}
 
 	offset, err := getQueryParamAsInt(r, "offset", 0)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return err
 	}
 
 	products, err := c.Service.FindAll(r.Context(), limit, offset)
 	if err != nil {
-		log.Printf("Error listing products: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	productResponses := make([]dto.ProductResponseDTO, len(products))
@@ -95,6 +84,7 @@ func (c *ProductController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSONResponse(w, http.StatusOK, productResponses)
+	return nil
 }
 
 // Find a product by ID
@@ -108,34 +98,17 @@ func (c *ProductController) FindAll(w http.ResponseWriter, r *http.Request) {
 // @Failure      404  {object}  object{error=string} "Not Found"
 // @Failure      500  {object}  object{error=string} "Internal Server Error"
 // @Router       /products/{id} [get]
-func (c *ProductController) FindByID(w http.ResponseWriter, r *http.Request) {
+func (c *ProductController) FindByID(w http.ResponseWriter, r *http.Request) error {
 	id, err := getIDFromRequest(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return err
 	}
 
 	product, err := c.Service.FindByID(r.Context(), id)
 	if err != nil {
-		if errors.Is(err, model.ErrProductNotFound) {
-			http.Error(w, "Product not found", http.StatusNotFound)
-			return
-		}
-		log.Printf("Error fetching product by ID: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	writeJSONResponse(w, http.StatusOK, dto.NewProductResponseDTO(*product))
-}
-
-func isValidationErrorProd(err error) bool {
-	return errors.Is(err, model.ErrNotNullViolation) ||
-		errors.Is(err, model.ErrProductNameRequired) ||
-		errors.Is(err, model.ErrProductNameTooShort) ||
-		errors.Is(err, model.ErrProductNameTooLong) ||
-		errors.Is(err, model.ErrProductPriceRequired) ||
-		errors.Is(err, model.ErrProductPriceTooLow) ||
-		errors.Is(err, model.ErrProductStockRequired) ||
-		errors.Is(err, model.ErrProductStockTooLow)
+	return nil
 }
