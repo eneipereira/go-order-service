@@ -28,6 +28,18 @@ func NewCustomerController(service CustomerService) *CustomerController {
 	return &CustomerController{Service: service}
 }
 
+// Create a new customer
+// @Summary      Create customer
+// @Description  Creates a new customer.
+// @Tags         Customers
+// @Accept       json
+// @Produce      json
+// @Param        customer  body      dto.CustomerDTO  true  "Customer to create"
+// @Success      201       {object}  dto.CustomerResponseDTO
+// @Failure      400  {object}  object{error=string} "Bad Request"
+// @Failure      409  {object}  object{error=string} "Conflict"
+// @Failure      500  {object}  object{error=string} "Internal Server Error"
+// @Router       /customers [post]
 func (c *CustomerController) Create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -57,6 +69,16 @@ func (c *CustomerController) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, http.StatusCreated, dto.NewCustomerResponseDTO(*savedCustomer))
 }
 
+// Find all customers
+// @Summary      List customers
+// @Description  Get all customers with pagination.
+// @Tags         Customers
+// @Produce      json
+// @Param        limit   query     int  false  "Limit"
+// @Param        offset  query     int  false  "Offset"
+// @Success      200     {array}   dto.CustomerResponseDTO
+// @Failure      500     {object}  object{error=string} "Internal Server Error"
+// @Router       /customers [get]
 func (c *CustomerController) FindAll(w http.ResponseWriter, r *http.Request) {
 	limit, err := getQueryParamAsInt(r, "limit", 10)
 	if err != nil {
@@ -85,6 +107,17 @@ func (c *CustomerController) FindAll(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, http.StatusOK, customerResponses)
 }
 
+// Find a customer by ID
+// @Summary      Get customer by ID
+// @Description  Get a single customer by its unique ID.
+// @Tags         Customers
+// @Produce      json
+// @Param        id   path      string  true  "Customer ID"
+// @Success      200  {object}  dto.CustomerResponseDTO
+// @Failure      400  {object}  object{error=string} "Bad Request"
+// @Failure      404  {object}  object{error=string} "Not Found"
+// @Failure      500  {object}  object{error=string} "Internal Server Error"
+// @Router       /customers/{id} [get]
 func (c *CustomerController) FindByID(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromRequest(r)
 	if err != nil {

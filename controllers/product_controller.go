@@ -25,6 +25,17 @@ func NewProductController(service ProductService) *ProductController {
 	return &ProductController{Service: service}
 }
 
+// Create a new product
+// @Summary      Create product
+// @Description  Creates a new product.
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Param        product  body      dto.CreateProductDTO  true  "Product to create"
+// @Success      201      {object}  dto.ProductResponseDTO
+// @Failure      400  {object}  object{error=string} "Bad Request"
+// @Failure      500  {object}  object{error=string} "Internal Server Error"
+// @Router       /products [post]
 func (c *ProductController) Create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -48,6 +59,16 @@ func (c *ProductController) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, http.StatusCreated, dto.NewProductResponseDTO(*savedProduct))
 }
 
+// Find all products
+// @Summary      List products
+// @Description  Get all products with pagination.
+// @Tags         Products
+// @Produce      json
+// @Param        limit   query     int  false  "Limit"
+// @Param        offset  query     int  false  "Offset"
+// @Success      200     {array}   dto.ProductResponseDTO
+// @Failure      500     {object}  object{error=string} "Internal Server Error"
+// @Router       /products [get]
 func (c *ProductController) FindAll(w http.ResponseWriter, r *http.Request) {
 	limit, err := getQueryParamAsInt(r, "limit", 10)
 	if err != nil {
@@ -76,6 +97,17 @@ func (c *ProductController) FindAll(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, http.StatusOK, productResponses)
 }
 
+// Find a product by ID
+// @Summary      Get product by ID
+// @Description  Get a single product by its unique ID.
+// @Tags         Products
+// @Produce      json
+// @Param        id   path      string  true  "Product ID"
+// @Success      200  {object}  dto.ProductResponseDTO
+// @Failure      400  {object}  object{error=string} "Bad Request"
+// @Failure      404  {object}  object{error=string} "Not Found"
+// @Failure      500  {object}  object{error=string} "Internal Server Error"
+// @Router       /products/{id} [get]
 func (c *ProductController) FindByID(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDFromRequest(r)
 	if err != nil {

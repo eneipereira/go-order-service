@@ -32,7 +32,6 @@ func (r *pgOrderRepository) Create(ctx context.Context, order *model.Order) erro
 		return fmt.Errorf("Error inserting order: %w", HandleRepositoryError(err))
 	}
 
-
 	for i := range order.Items {
 		item := &order.Items[i]
 		item.OrderID = order.ID
@@ -52,7 +51,6 @@ func (r *pgOrderRepository) Create(ctx context.Context, order *model.Order) erro
 			return model.ErrInsufficientStock
 		}
 	}
-
 
 	return tx.Commit(ctx)
 }

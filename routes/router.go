@@ -16,6 +16,7 @@ func SetupRouter(customerController *controllers.CustomerController, productCont
 	RegisterCustomerRoutes(r, customerController)
 	RegisterProductRoutes(r, productController)
 	RegisterOrderRoutes(r, orderController)
+	RegisterSwaggerRoutes(r)
 
 	return r
 }
