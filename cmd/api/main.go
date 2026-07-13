@@ -6,7 +6,9 @@ import (
 	"net/http"
 
 	"github.com/eneipereira/go-order-service/config"
+	"github.com/eneipereira/go-order-service/controllers"
 	"github.com/eneipereira/go-order-service/database"
+	"github.com/eneipereira/go-order-service/repository"
 	"github.com/eneipereira/go-order-service/routes"
 )
 
@@ -21,7 +23,10 @@ func main() {
 	}
 	defer dbpool.Close()
 
-	router := routes.SetupRouter()
+	customerRepo := repository.NewPostgresCustomerRepository(dbpool)
+	customerController := controllers.NewCustomerController(customerRepo)
+
+	router := routes.SetupRouter(customerController)
 
 	log.Printf("Servidor iniciando na porta %s", cfg.ServerPort)
 
