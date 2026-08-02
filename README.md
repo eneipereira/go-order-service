@@ -124,7 +124,7 @@ swag init -g cmd/api/main.go
 
 ### Testes
 
-O projeto possui uma suíte de testes unitários completa para garantir a qualidade e a estabilidade do código, atualmente o projeto conta com testes para as camadas de model e service, ambos com 100% de cobertura.
+O projeto possui uma suíte de testes unitários e de integração para garantir a qualidade e a estabilidade do código. Atualmente, o projeto possui 43.7% de cobertura global de testes, cobrindo as camadas de `model`, `service` e `controller`
 
 Posteriormente, serão adicionados os testes para as demais camadas.
 
@@ -136,11 +136,22 @@ go test -v ./...
 
 #### Cobertura de Testes
 
-Para gerar um relatório de cobertura de testes e visualizá-lo em HTML, execute os comandos abaixo:
+Para gerar um relatório de cobertura, primeiro execute o comando de teste com a flag `-coverprofile`:
 
 ```sh
 go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out -o coverage.html
+```
+
+Isso criará um arquivo `coverage.out`. Com ele, você pode:
+
+1.  **Ver a porcentagem de cobertura total no terminal:**
+    ```sh
+    go tool cover -func=coverage.out
+    ```
+2.  **Gerar um relatório visual em HTML:**
+    ```sh
+    go tool cover -html=coverage.out -o coverage.html
+
 ```
 
 ### Health Check
@@ -171,3 +182,4 @@ go tool cover -html=coverage.out -o coverage.html
 ---
 
 **Autor**: Enei Pereira
+```
