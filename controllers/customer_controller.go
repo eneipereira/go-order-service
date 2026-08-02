@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/eneipereira/go-order-service/dto"
@@ -41,7 +40,7 @@ func (c *CustomerController) Create(w http.ResponseWriter, r *http.Request) erro
 
 	var req dto.CustomerDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return fmt.Errorf("invalid JSON: %w", err)
+		return model.ErrInvalidJSON
 	}
 
 	savedCustomer, err := c.Service.Create(r.Context(), req)

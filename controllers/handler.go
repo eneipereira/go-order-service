@@ -71,7 +71,7 @@ func writeJSONResponse(w http.ResponseWriter, status int, data interface{}) {
 }
 
 func isValidationError(err error) bool {
-	return isValidationErrorCust(err) || isValidationErrorProd(err) || errors.Is(err, model.ErrInvalidQueryParam) || errors.Is(err, model.ErrInvalidUUID)
+	return isValidationErrorCust(err) || isValidationErrorProd(err) || errors.Is(err, model.ErrInvalidQueryParam) || errors.Is(err, model.ErrInvalidUUID) || errors.Is(err, model.ErrInvalidJSON)
 }
 
 func isValidationErrorCust(err error) bool {
