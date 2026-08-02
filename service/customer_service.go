@@ -14,22 +14,25 @@ type CustomerRepository interface {
 	FindAll(ctx context.Context, limit, offset int) ([]*model.Customer, error)
 }
 
+type PasswordHasher func(password []byte, cost int) ([]byte, error)
+
 type CustomerService struct {
-	repo CustomerRepository
+	repo   CustomerRepository
+	hasher PasswordHasher
 }
 
 func NewCustomerService(repo CustomerRepository) *CustomerService {
-	return &CustomerService{repo: repo}
+	return &CustomerService{repo: repo, hasher: bcrypt.GenerateFromPassword}
 }
 
 func (s *CustomerService) Create(ctx context.Context, req dto.CustomerDTO) (*model.Customer, error) {
 	err := model.ValidateCustomerPassword(req.Password)
-
 	if err != nil {
 		return nil, err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+	hashedPassword, err := s.hasher([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
