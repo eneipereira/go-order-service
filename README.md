@@ -41,7 +41,7 @@ Siga os passos abaixo para configurar e executar o projeto localmente.
 ### 2. Clonar o Repositório
 
 ```sh
-git clone https://github.com/seu-usuario/go-order-service.git
+git clone https://github.com/eneipereira/go-order-service.git
 cd go-order-service
 ```
 
@@ -79,6 +79,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
 
 volumes:
@@ -120,6 +121,27 @@ swag init -g cmd/api/main.go
 ```
 
 ## 🛣️ Endpoints da API
+
+### Testes
+
+O projeto possui uma suíte de testes unitários completa para garantir a qualidade e a estabilidade do código, atualmente o projeto conta com testes para as camadas de model e service, ambos com 100% de cobertura.
+
+Posteriormente, serão adicionados os testes para as demais camadas.
+
+Para executar todos os testes, use o seguinte comando:
+
+```sh
+go test -v ./...
+```
+
+#### Cobertura de Testes
+
+Para gerar um relatório de cobertura de testes e visualizá-lo em HTML, execute os comandos abaixo:
+
+```sh
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+```
 
 ### Health Check
 
